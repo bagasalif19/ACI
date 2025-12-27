@@ -24,6 +24,139 @@
         </div>
     </div>
     <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div class="row g-5 mb-10">
+
+    {{-- ===== Rekap Status ===== --}}
+    <div class="col-12">
+        <div class="card card-flush border border-gray-300">
+            <div class="card-header pt-5">
+                <div class="card-title">
+                    <h3 class="fw-bold m-0">Rekap Laporan per Status</h3>
+                </div>
+                <div class="card-toolbar">
+                    <span class="badge badge-light-primary">Total: {{ $totalLaporan ?? 0 }}</span>
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                @php
+                    $labelMap = [
+                        'pengajuan' => 'Pengajuan',
+                        'diterima' => 'Diterima',
+                        'diverifikasi' => 'Diverifikasi',
+                        'dalam_penanganan' => 'Dalam Penanganan',
+                        'selesai' => 'Selesai',
+                        'ditolak' => 'Ditolak',
+                    ];
+                @endphp
+
+                @if(empty($rekapStatus))
+                    <div class="text-muted">Data status belum tersedia (cek koneksi API / endpoint rekap).</div>
+                @else
+                    <div class="row g-4">
+                        @foreach($rekapStatus as $key => $val)
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <div class="border rounded p-4 h-100">
+                                    <div class="text-muted fw-semibold">{{ $labelMap[$key] ?? $key }}</div>
+                                    <div class="fs-2 fw-bold mt-1">{{ (int)$val }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- ===== Count per Kecamatan (Tabel) ===== --}}
+    <div class="col-12 col-lg-5">
+        <div class="card card-flush border border-gray-300 h-100">
+            <div class="card-header pt-5">
+                <div class="card-title">
+                    <h3 class="fw-bold m-0">Count Laporan per Kecamatan</h3>
+                </div>
+                <div class="card-toolbar">
+                    <span class="text-muted">Urut terbesar</span>
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                @if(empty($kecamatanCounts))
+                    <div class="text-muted">Data kecamatan belum tersedia (cek endpoint wilayah-kecamatan / rekap-kecamatan).</div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-row-dashed align-middle">
+                            <thead>
+                                <tr class="text-muted fw-bold">
+                                    <th>Kecamatan</th>
+                                    <th class="text-end">Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(array_slice($kecamatanCounts, 0, 10) as $row)
+                                    <tr>
+                                        <td class="fw-semibold">{{ $row['nama'] }}</td>
+                                        <td class="text-end fw-bold">{{ (int)$row['total'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        <div class="text-muted fs-8">Menampilkan Top 10 kecamatan.</div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- ===== Grafik Count Kecamatan ===== --}}
+    <div class="col-12 col-lg-7">
+        <div class="card card-flush border border-gray-300 h-100">
+            <div class="card-header pt-5">
+                <div class="card-title">
+                    <h3 class="fw-bold m-0">Grafik Laporan per Kecamatan (Top 10)</h3>
+                </div>
+            </div>
+            <div class="card-body pt-0">
+                <canvas id="chartKecamatan" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function(){
+            const el = document.getElementById('chartKecamatan');
+            if(!el) return;
+
+            const labels = @json($chartLabels ?? []);
+            const values = @json($chartValues ?? []);
+
+            if(labels.length === 0) return;
+
+            new Chart(el, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Laporan',
+                        data: values
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        })();
+    </script>
+@endpush
+
         <div class="row gx-5 gx-xl-10 mb-xl-10">
     <!--begin::Col-->
     <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-10">
