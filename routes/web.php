@@ -29,8 +29,9 @@ use App\Http\Controllers\Frontend\BerandaController;
 
 
 
-Route::get('/', [BerandaController::class, 'index'])->name('beranda.index');
 
+Route::get('/', [BerandaController::class, 'index'])->name('beranda.index');
+Route::get('/', [BerandaController::class, 'index'])->name('dashboard.index');
 
 
 
